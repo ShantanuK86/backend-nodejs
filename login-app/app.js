@@ -42,7 +42,6 @@ app.post('/register', async (req, res) => {
     });
 
     await user.save();
-
     res.redirect('/login');
 });
 
