@@ -33,15 +33,22 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, email} = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    const existinguser=await User.findOne({email:username});
+    if(existinguser){
+        return res.status(400).send("username exists");
+    }
     const user = new User({
         username,
+        email,
         password: hashedPassword
     });
 
     await user.save();
+    res.json({
+        "msg":"user created successfully"
+    })
     res.redirect('/login');
 });
 
@@ -50,12 +57,13 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password,email } = req.body;
 
     const user = await User.findOne({ username });
 
     if (user && await bcrypt.compare(password, user.password)) {
         req.session.userId = user._id;
+        req.session.email = user.email;
         req.session.username = user.username;
 
         return res.redirect('/dashboard');
